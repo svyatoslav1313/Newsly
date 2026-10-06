@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm по умолчанию не запускает install-скрипты зависимостей.
+# Здесь явно указано, кому это разрешено (true) и кому нет (false).
+allowBuilds:
+  '@prisma/engines': true
+  prisma: true
+  esbuild: true
+  sharp: false
+  unrs-resolver: false
