@@ -1,6 +1,10 @@
 import type { Post } from '@my-project/shared';
+import type { Metadata } from 'next';
+import { Container } from '@/components/ui/container';
 import { api } from '@/lib/api';
 import { CreatePostForm } from './create-post-form';
+
+export const metadata: Metadata = { title: 'Демо API' };
 
 // Страница рендерится на каждый запрос, а не один раз при сборке:
 // список постов меняется, и API во время `next build` может быть не запущен.
@@ -17,31 +21,41 @@ export default async function PostsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Посты</h1>
+    <Container className="max-w-2xl space-y-8 pt-8 sm:pt-12">
+      <div>
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">
+          Посты
+        </h1>
+        <p className="mt-2 text-[15px] text-ink-muted">
+          Пример работы с настоящим API: данные приходят из NestJS и PostgreSQL.
+        </p>
+      </div>
 
       <CreatePostForm />
 
       {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger"
+        >
           {error}
         </p>
       ) : posts.length === 0 ? (
-        <p className="text-sm text-zinc-500">Постов пока нет.</p>
+        <p className="text-sm text-ink-subtle">Постов пока нет.</p>
       ) : (
         <ul className="space-y-3">
           {posts.map((post) => (
             <li
               key={post.id}
-              className="rounded-lg border border-zinc-200 bg-white p-4"
+              className="rounded-xl border border-line bg-surface p-5 shadow-sm"
             >
-              <h2 className="font-medium">{post.title}</h2>
-              <p className="mt-1 text-sm whitespace-pre-line text-zinc-600">
+              <h2 className="font-medium text-ink">{post.title}</h2>
+              <p className="mt-1 text-[15px] leading-relaxed whitespace-pre-line text-ink-muted">
                 {post.content}
               </p>
               <time
                 dateTime={post.createdAt}
-                className="mt-2 block text-xs text-zinc-400"
+                className="mt-3 block text-sm text-ink-subtle"
               >
                 {new Date(post.createdAt).toLocaleString('ru-RU')}
               </time>
@@ -49,6 +63,6 @@ export default async function PostsPage() {
           ))}
         </ul>
       )}
-    </div>
+    </Container>
   );
 }

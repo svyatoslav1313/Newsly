@@ -14,20 +14,38 @@ async function main() {
     return;
   }
 
+  // У каждого поста обязан быть автор, поэтому сначала создаём пользователя.
+  // upsert — чтобы повторный запуск не падал на уникальном email.
+  const author = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+      email: 'admin@example.com',
+      name: 'Администратор',
+      // Заглушка, а не настоящий хеш: войти под этим пользователем нельзя,
+      // пока не появится авторизация с хешированием паролей.
+      passwordHash: 'not-a-real-hash',
+      role: 'ADMIN',
+    },
+  });
+
   const { count } = await prisma.post.createMany({
     data: [
       {
         title: 'Привет, монорепозиторий!',
         content: 'Этот пост создан seed-скриптом и хранится в PostgreSQL.',
+        authorId: author.id,
       },
       {
         title: 'NestJS + Prisma',
         content: 'API отдаёт посты через PostsService, который ходит в базу.',
+        authorId: author.id,
       },
       {
         title: 'Next.js App Router',
         content:
           'Страница /posts — серверный компонент, получающий этот список.',
+        authorId: author.id,
       },
     ],
   });

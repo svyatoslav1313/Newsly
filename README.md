@@ -1,216 +1,211 @@
-# My Project
+# Newsly
 
-Учебный фулстек-монорепозиторий: **Next.js** (фронтенд) + **NestJS** (бэкенд) +
-**PostgreSQL** через **Prisma**. Всё на TypeScript в strict-режиме.
+A full-stack news site built as a learning project: a **Next.js** frontend, a
+**NestJS** REST API and **PostgreSQL** through **Prisma**, all in one
+TypeScript monorepo.
 
-В проекте уже есть рабочий пример «от базы до экрана»: модель `Post` в базе →
-CRUD-модуль `posts` в API → страница `/posts` со списком и формой создания.
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-12-E0234E?logo=nestjs&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 
-## Структура
+> **Status:** work in progress. The news interface currently runs on mock data,
+> and the API has no authentication yet. See [Roadmap](#roadmap).
+
+## Features
+
+**Frontend**
+
+- News feed with categories and search, article pages with likes and comments
+- Sign-in and registration forms, admin panel for creating and editing news
+- Light and dark themes, applied before first paint
+- Responsive layout from 360 px up, with animations that respect
+  `prefers-reduced-motion`
+- A `/posts` page wired to the real API, as an end-to-end example
+
+**Backend**
+
+- REST API with request validation and consistent HTTP errors
+- Users: registration with bcrypt password hashing, profile update, password
+  change with current-password check
+- Posts linked to their author; deleting a user keeps their posts
+- Versioned database schema with Prisma migrations and a seed script
+
+## Tech stack
+
+| Layer    | Technology                                                        |
+| -------- | ----------------------------------------------------------------- |
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4, Motion         |
+| Backend  | NestJS 12 (ESM), class-validator, bcrypt                          |
+| Database | PostgreSQL, Prisma 7 with the `pg` driver adapter                 |
+| Tooling  | pnpm workspaces, Turborepo, TypeScript 6 (strict), ESLint, oxlint |
+
+## Project structure
 
 ```
 ├── apps/
-│   ├── web/                  Next.js (App Router, Tailwind CSS, ESLint), порт 3000
-│   │   ├── app/              страницы: `/` и `/posts`
-│   │   └── lib/api.ts        обёртка над fetch для запросов к API
-│   └── api/                  NestJS, порт 3001, префикс /api
-│       ├── prisma/           schema.prisma, миграции, seed.ts
-│       ├── prisma.config.ts  настройки Prisma CLI (откуда брать DATABASE_URL и т. д.)
+│   ├── web/                  Next.js app, port 3000
+│   │   ├── app/              routes: /, /news/[slug], /login, /register,
+│   │   │                     /admin, /posts
+│   │   ├── components/       UI components (ui/ holds the base primitives)
+│   │   └── lib/              API client, mock data, client-side store, types
+│   └── api/                  NestJS app, port 3001, global prefix /api
+│       ├── prisma/           schema.prisma, migrations, seed.ts
+│       ├── prisma.config.ts  Prisma CLI configuration
 │       └── src/
-│           ├── main.ts       запуск: префикс, CORS, ValidationPipe
-│           ├── app.module.ts корневой модуль
-│           ├── prisma/       PrismaService + глобальный PrismaModule
-│           ├── health/       GET /api/health
-│           ├── posts/        пример модуля: controller, service, DTO
-│           └── generated/    Prisma Client (генерируется, в git не попадает)
+│           ├── prisma/       PrismaService and the global PrismaModule
+│           ├── health/       health check
+│           ├── posts/        posts module (controller, service, DTO)
+│           └── users/        users module (controller, service, DTOs)
 ├── packages/
-│   ├── shared/               @my-project/shared — общие типы и константы
-│   └── tsconfig/             @my-project/tsconfig — базовые настройки TypeScript
-├── pnpm-workspace.yaml       список пакетов монорепозитория
-├── turbo.json                задачи Turborepo (build, dev, lint)
-└── package.json              корневые скрипты
+│   ├── shared/               @my-project/shared: types and constants
+│   └── tsconfig/             @my-project/tsconfig: base TypeScript configs
+├── pnpm-workspace.yaml
+└── turbo.json
 ```
 
-## Запуск с нуля
+## Getting started
 
-Нужны: **Node.js 22.12+**, **pnpm 12** и локально установленный **PostgreSQL**
-(Docker не используется).
+**Prerequisites:** Node.js 22.12 or newer, pnpm 12 and a local PostgreSQL
+server. Docker is not used.
 
-1. Установить зависимости:
+1. Install dependencies:
 
    ```bash
    pnpm install
    ```
 
-2. Создать файлы окружения из шаблонов:
+2. Create the environment files from the templates:
 
    ```bash
    cp apps/api/.env.example apps/api/.env
    cp apps/web/.env.example apps/web/.env.local
    ```
 
-3. В `apps/api/.env` вписать свой пароль в `DATABASE_URL`:
+3. Put your PostgreSQL password into `DATABASE_URL` in `apps/api/.env`:
 
    ```
-   DATABASE_URL="postgresql://postgres:ПАРОЛЬ@localhost:5432/my_project"
+   DATABASE_URL="postgresql://postgres:PASSWORD@localhost:5432/my_project"
    ```
 
-   Базу `my_project` создавать вручную не нужно — Prisma создаст её при первой
-   миграции. Если в пароле есть спецсимволы (`@`, `#`, `/`, `:` …), их нужно
-   закодировать (например, `@` → `%40`).
+   The database itself is created by the first migration. Special characters
+   in the password must be URL-encoded (for example `@` becomes `%40`).
 
-4. Применить миграции (создаст базу и таблицы):
+4. Apply the migrations and seed the database:
 
    ```bash
    pnpm db:migrate
-   ```
-
-5. Заполнить базу тестовыми постами:
-
-   ```bash
    pnpm db:seed
    ```
 
-6. Запустить всё в режиме разработки:
+   The seed creates one admin user and three posts. It does nothing if posts
+   already exist.
+
+5. Start everything in development mode:
 
    ```bash
    pnpm dev
    ```
 
-   - фронтенд: http://localhost:3000/posts
-   - проверка API: http://localhost:3001/api/health
+   - Frontend: http://localhost:3000
+   - API health check: http://localhost:3001/api/health
 
-## Скрипты
+## Scripts
 
-Все команды запускаются из корня репозитория.
+Run all commands from the repository root.
 
-| Команда             | Что делает                                                                  |
-| ------------------- | --------------------------------------------------------------------------- |
-| `pnpm dev`          | Запускает web, api и пересборку shared одновременно, с авто-перезагрузкой   |
-| `pnpm build`        | Собирает все пакеты в правильном порядке (shared → api, web)                |
-| `pnpm lint`         | Проверяет код: ESLint в web, oxlint в api                                   |
-| `pnpm format`       | Форматирует весь репозиторий через Prettier                                 |
-| `pnpm format:check` | Проверяет форматирование, ничего не меняя                                   |
-| `pnpm db:migrate`   | `prisma migrate dev` — создаёт и применяет миграцию после правки схемы      |
-| `pnpm db:generate`  | `prisma generate` — пересоздаёт Prisma Client по схеме                      |
-| `pnpm db:studio`    | Открывает Prisma Studio — веб-интерфейс для просмотра данных                |
-| `pnpm db:seed`      | Запускает `apps/api/prisma/seed.ts` (ничего не делает, если посты уже есть) |
+| Command             | Description                                           |
+| ------------------- | ----------------------------------------------------- |
+| `pnpm dev`          | Start web, api and the shared package in watch mode   |
+| `pnpm build`        | Build every package in dependency order               |
+| `pnpm lint`         | Lint the code (ESLint in web, oxlint in api)          |
+| `pnpm format`       | Format the repository with Prettier                   |
+| `pnpm format:check` | Check formatting without writing changes              |
+| `pnpm db:migrate`   | Create and apply a migration after editing the schema |
+| `pnpm db:generate`  | Regenerate the Prisma Client                          |
+| `pnpm db:seed`      | Fill the database with sample data                    |
+| `pnpm db:studio`    | Open Prisma Studio to browse the data                 |
 
-Запустить команду только в одном приложении: `pnpm --filter api <скрипт>` или
-`pnpm --filter web <скрипт>`. Так же ставятся зависимости:
-`pnpm --filter web add <пакет>`.
+To run a script in a single app, use `pnpm --filter web <script>` or
+`pnpm --filter api <script>`.
 
-## API
+## Environment variables
 
-| Метод и путь            | Описание                                             |
-| ----------------------- | ---------------------------------------------------- |
-| `GET /api/health`       | Статус приложения и подключения к базе               |
-| `GET /api/posts`        | Список постов (новые сверху)                         |
-| `GET /api/posts/:id`    | Один пост, `404`, если не найден                     |
-| `POST /api/posts`       | Создать пост: `{ "title": "...", "content": "..." }` |
-| `DELETE /api/posts/:id` | Удалить пост, ответ `204`                            |
+| File                  | Variable              | Default                     | Purpose                        |
+| --------------------- | --------------------- | --------------------------- | ------------------------------ |
+| `apps/api/.env`       | `DATABASE_URL`        | none (required)             | PostgreSQL connection string   |
+| `apps/api/.env`       | `PORT`                | `3001`                      | Port the API listens on        |
+| `apps/api/.env`       | `CORS_ORIGIN`         | `http://localhost:3000`     | Origin allowed to call the API |
+| `apps/web/.env.local` | `NEXT_PUBLIC_API_URL` | `http://localhost:3001/api` | Base URL of the API            |
 
-## Как добавить новый модуль в NestJS
+## API reference
 
-Смотрите на `apps/api/src/posts` как на образец. Пример — модуль `comments`:
+All routes are served under the `/api` prefix. Errors are returned as
+`{ "message", "error", "statusCode" }`.
 
-1. Если нужна новая таблица — опишите модель в `apps/api/prisma/schema.prisma`
-   и выполните `pnpm db:migrate` (спросит имя миграции, заодно обновит Prisma
-   Client).
-2. Сгенерируйте заготовки (из папки `apps/api`):
+### Health
 
-   ```bash
-   pnpm nest g module comments
-   pnpm nest g controller comments --no-spec
-   pnpm nest g service comments --no-spec
-   ```
+| Method | Path      | Description                               |
+| ------ | --------- | ----------------------------------------- |
+| `GET`  | `/health` | Application and database connection state |
 
-   CLI сам добавит `CommentsModule` в `imports` в `app.module.ts`.
+### Posts
 
-3. Создайте DTO в `comments/dto/` — класс с декораторами `class-validator`.
-   Глобальный `ValidationPipe` проверит по нему тело запроса.
-4. В сервисе получите `PrismaService` через конструктор. Импортировать
-   `PrismaModule` не нужно — он глобальный.
+| Method   | Path         | Description                         |
+| -------- | ------------ | ----------------------------------- |
+| `GET`    | `/posts`     | List posts, newest first            |
+| `GET`    | `/posts/:id` | Get one post                        |
+| `POST`   | `/posts`     | Create a post: `{ title, content }` |
+| `DELETE` | `/posts/:id` | Delete a post, responds with `204`  |
 
-**Важно:** API — это ESM-проект, поэтому относительные импорты пишутся с
-расширением `.js`, даже если файл называется `.ts`:
+### Users
 
-```ts
-import { CommentsService } from './comments.service.js';
-```
+| Method   | Path                  | Description                                                      |
+| -------- | --------------------- | ---------------------------------------------------------------- |
+| `GET`    | `/users`              | List users, newest first                                         |
+| `GET`    | `/users/count`        | Number of registered users                                       |
+| `GET`    | `/users/:id`          | Get one user                                                     |
+| `POST`   | `/users`              | Register: `{ email, name, password }`, password of 8+ characters |
+| `PATCH`  | `/users/:id`          | Update `name` and/or `email`                                     |
+| `PATCH`  | `/users/:id/password` | Change password: `{ currentPassword, newPassword }`, `204`       |
+| `DELETE` | `/users/:id`          | Delete a user; their posts stay with an empty author             |
 
-## Как добавить новую страницу в Next.js
+Password hashes are never included in responses.
 
-В App Router путь страницы определяется папкой. Страница `/about` — это файл
-`apps/web/app/about/page.tsx`:
+## Database
 
-```tsx
-export default function AboutPage() {
-  return <h1 className="text-2xl font-semibold">О проекте</h1>;
-}
-```
+The schema lives in `apps/api/prisma/schema.prisma`.
 
-- По умолчанию компонент **серверный**: в нём можно делать `await api.getPosts()`
-  прямо в теле функции (см. `app/posts/page.tsx`).
-- Если нужны `useState`, обработчики событий и т. п. — вынесите эту часть в
-  отдельный файл с `'use client'` в первой строке (см.
-  `app/posts/create-post-form.tsx`).
-- Новые запросы к API добавляйте в `apps/web/lib/api.ts`.
-- Ссылку в шапку — в `app/layout.tsx`.
+| Model  | Fields                                                              |
+| ------ | ------------------------------------------------------------------- |
+| `User` | `id`, `email` (unique), `name`, `passwordHash`, `role`, `createdAt` |
+| `Post` | `id`, `title`, `content`, `createdAt`, `authorId` (optional)        |
 
-## Как добавить общий тип в packages/shared
+`role` is an enum of `USER` and `ADMIN`. A user has many posts; when a user is
+deleted, `authorId` of their posts is set to `NULL`.
 
-1. Создайте или дополните файл в `packages/shared/src`, например `comment.ts`:
+## Architecture notes
 
-   ```ts
-   export interface Comment {
-     id: number;
-     text: string;
-   }
-   ```
+- **Compiled shared package.** `packages/shared` is built with `tsc` into
+  `dist/`, and both apps import the compiled JavaScript with its types.
+  Turborepo builds it before anything that depends on it.
+- **ESM on the backend.** The API and the shared package use `nodenext`
+  module resolution, so relative imports end in `.js`.
+- **Prisma 7.** The client is generated into `apps/api/src/generated/prisma`
+  and is not committed. The connection goes through the `@prisma/adapter-pg`
+  driver adapter, and the CLI reads `DATABASE_URL` from `prisma.config.ts`.
+- **Design tokens.** Colours, radii and shadows are CSS variables in
+  `apps/web/app/globals.css`, mapped to Tailwind classes with `@theme`. The
+  dark theme overrides the same variables through `data-theme` on `<html>`.
+- **Mock store as a seam.** The news interface reads from a client-side store
+  in `apps/web/lib/store.tsx`. Replacing its function bodies with API calls is
+  the planned path to a real backend.
 
-2. Экспортируйте его из `packages/shared/src/index.ts` (тоже с `.js`):
+## Roadmap
 
-   ```ts
-   export * from './comment.js';
-   ```
-
-3. Импортируйте в любом приложении:
-
-   ```ts
-   import type { Comment } from '@my-project/shared';
-   ```
-
-При запущенном `pnpm dev` пакет пересобирается сам. Чтобы подключить
-`@my-project/shared` к новому приложению, добавьте в его `package.json`
-`"@my-project/shared": "workspace:*"` и выполните `pnpm install`.
-
-## Ключевые решения
-
-- **pnpm workspaces + Turborepo.** pnpm связывает пакеты между собой
-  (`workspace:*`), а Turborepo запускает задачи в нужном порядке и кэширует
-  результат: `build` приложения всегда ждёт сборки `shared`.
-- **`shared` — компилируемый пакет.** Он собирается через `tsc` в `dist/`, и
-  приложения импортируют готовый JavaScript + типы. Причина: NestJS запускается
-  обычным Node.js, который не умеет импортировать `.ts` из другого пакета. В
-  dev-режиме `tsc --watch` пересобирает пакет на лету, а перед `dev`/`build`
-  Turborepo собирает его заранее.
-- **Тип `Post` в `shared` описывает JSON, а не строку таблицы.** Поэтому
-  `createdAt` там `string`: дата по сети передаётся строкой. Внутри API для
-  работы с базой используются типы, сгенерированные Prisma.
-- **API — ESM-проект** (`"type": "module"`). Так его создаёт актуальный
-  `nest new` (NestJS 12), и так проще с Prisma 7, которая генерирует ESM-код.
-  Отсюда `.js` в импортах.
-- **Prisma 7.** Клиент генерируется в `apps/api/src/generated/prisma` (не в
-  `node_modules`) и в git не хранится — его создаёт `prisma generate`, который
-  Turborepo запускает перед `dev`, `build` и `lint`. Подключение к базе идёт
-  через драйвер-адаптер `@prisma/adapter-pg`, а `DATABASE_URL` для CLI читается
-  в `prisma.config.ts`.
-- **Два линтера.** В web — ESLint с конфигом Next.js, в api — oxlint. Оба
-  варианта взяты из официальных шаблонов (`create-next-app` и `nest new`).
-- **TypeScript 6.0**, а не 7.0: на момент создания проекта инструменты ESLint
-  для TypeScript и Nest CLI ещё не поддерживают 7-ю версию.
-- **Страница `/posts` — `force-dynamic`.** Она рендерится на каждый запрос, так
-  что список всегда свежий и `pnpm build` не требует запущенного API.
-- **Форма отправляет запрос из браузера напрямую в API** — поэтому в NestJS
-  включён CORS для `http://localhost:3000` (меняется через `CORS_ORIGIN`).
+- [ ] Authentication and role-based access to the admin panel
+- [ ] News, categories and comments in the database and the API
+- [ ] Connect the news interface to the API instead of mock data
+- [ ] Show the post author on the frontend

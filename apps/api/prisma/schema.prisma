@@ -7,9 +7,28 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model Post {
   id        Int      @id @default(autoincrement())
   title     String
   content   String
   createdAt DateTime @default(now())
+  // Автор необязателен: при удалении пользователя его посты остаются,
+  // а authorId обнуляется (onDelete: SetNull).
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId  Int?
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  posts        Post[]
 }

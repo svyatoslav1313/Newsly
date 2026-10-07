@@ -25,3 +25,6 @@ apps/api/src/generated/
 # misc
 .DS_Store
 Thumbs.db
+
+# заметки для Claude Code — локальный файл
+CLAUDE.md

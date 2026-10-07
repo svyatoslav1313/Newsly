@@ -1,1 +1,184 @@
 @import 'tailwindcss';
+
+/* Вариант `dark:` включается атрибутом data-theme на <html>, а не настройкой ОС. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ---------- Дизайн-токены: светлая тема ---------- */
+:root {
+  color-scheme: light;
+
+  --canvas: #faf9f7;
+  --surface: #ffffff;
+  --surface-muted: #f2f0ec;
+  --line: #e6e3dd;
+  --line-strong: #d3cfc7;
+
+  --ink: #1a1917;
+  --ink-muted: #5f5b54;
+  --ink-subtle: #6f6a62;
+
+  /* Единственный акцентный цвет: кнопки, ссылки, активный лайк. */
+  --accent: #be185d;
+  --accent-hover: #9d174d;
+  --accent-fg: #ffffff;
+  --accent-soft: #fce7f1;
+
+  --danger: #b3261e;
+
+  --elevation-1: 0 1px 2px rgb(26 25 23 / 0.05);
+  --elevation-2:
+    0 6px 20px -6px rgb(26 25 23 / 0.1), 0 1px 2px rgb(26 25 23 / 0.04);
+  --elevation-3:
+    0 20px 48px -16px rgb(26 25 23 / 0.16), 0 2px 6px rgb(26 25 23 / 0.04);
+}
+
+/* ---------- Тёмная тема: не инверсия, а отдельно подобранные значения ---------- */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas: #111110;
+  --surface: #191918;
+  --surface-muted: #222221;
+  --line: #2b2a28;
+  --line-strong: #3a3936;
+
+  --ink: #edece9;
+  --ink-muted: #a8a49c;
+  --ink-subtle: #8a867e;
+
+  --accent: #f472b6;
+  --accent-hover: #f797c9;
+  --accent-fg: #2a0a1b;
+  --accent-soft: #2e1522;
+
+  --danger: #f2867d;
+
+  --elevation-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elevation-2: 0 8px 24px -8px rgb(0 0 0 / 0.6), 0 1px 2px rgb(0 0 0 / 0.4);
+  --elevation-3: 0 24px 56px -16px rgb(0 0 0 / 0.7), 0 2px 6px rgb(0 0 0 / 0.4);
+}
+
+/* ---------- Связь токенов с Tailwind: bg-canvas, text-ink, border-line и т. д. ---------- */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-text), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), ui-serif, Georgia, serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-sm: var(--elevation-1);
+  --shadow-md: var(--elevation-2);
+  --shadow-lg: var(--elevation-3);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'kern', 'liga';
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Заметная рамка фокуса только при навигации с клавиатуры. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--accent-soft);
+    color: var(--ink);
+  }
+}
+
+/* ---------- Текст статьи: строка 60–75 символов, интерлиньяж 1.7 ---------- */
+.article-body {
+  max-width: 40rem;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+@media (min-width: 768px) {
+  .article-body {
+    font-size: 1.125rem;
+  }
+}
+
+.article-body > * + * {
+  margin-top: 1.5rem;
+}
+
+.article-body h2 {
+  margin-top: 2.5rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.article-body blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+/* ---------- Смена темы: мягкое перетекание через View Transitions ---------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 280ms;
+  animation-timing-function: ease-out;
+}
+
+/* ---------- Уважаем настройку «уменьшить движение» ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

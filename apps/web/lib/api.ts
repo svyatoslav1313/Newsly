@@ -23,15 +23,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     // NestJS возвращает ошибки в виде { message: string | string[] }.
     const body = await response.json().catch(() => null);
+
     const message = Array.isArray(body?.message)
       ? body.message.join(', ')
       : (body?.message ?? response.statusText);
+
     throw new ApiError(response.status, message);
   }
 
   if (response.status === 204) {
     return undefined as T;
   }
+
   return (await response.json()) as T;
 }
 
